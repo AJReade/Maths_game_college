@@ -1,0 +1,378 @@
+
+SET leader_board_dict TO {}
+
+SET correct_answers TO []
+
+SET user_answers TO []
+
+SET lets_play TO True
+
+
+DEFINE FUNCTION number_input():
+
+    TRY:
+
+        global user_start_number 
+
+        global user_end_number
+
+        SET user_start_number TO int(INPUT("Please enter your start number: "))  # takes user inputs
+
+        SET user_end_number TO int(INPUT("Please enter your end number: "))
+
+        IF user_end_number < user_start_number:
+
+            OUTPUT("Invaid input the second number must be less than the first, try again!")
+
+            number_input()
+
+    except ValueError:    # prevents entry of a float
+
+        OUTPUT("Please enter integers only, try again!" )
+
+        number_input()
+
+
+
+SET leader_board_dict TO {}
+
+DEFINE FUNCTION leader_board_sort(leader_board_dict):
+
+    SET temp TO []
+
+    FOR key, val IN leader_board_dict.items(): 
+
+        temp.append([key] + [val]) 
+
+    # We go through the list as many times as there are elements
+
+    FOR i IN range(len(temp)):
+
+     # so the last pair of adjacent elements to be (n-2, n-1) where n TO length
+
+        FOR j IN range(len(temp) - 1):
+
+            IF temp[j][1] < temp[j+1][1]:
+
+                # Swap
+
+                SET temp[j][1], temp[j+1][1] TO temp[j+1][1], temp[j][1]
+
+    RETURN temp
+
+
+
+DEFINE FUNCTION leader_board(total_score): #allows user to INPUT their score on leader board with custom name
+
+    leader_board_dict.update({INPUT("please enter your attempt name: "): total_score})
+
+    OUTPUT("This list is sorted from best to worse! Where are you?")
+
+    OUTPUT(leader_board_sort(leader_board_dict))
+
+    
+
+    
+
+DEFINE FUNCTION empty_answer_lists(): #resets lists and variables so they can be used repeatdly for each call
+
+    global correct_answers
+
+    global user_answers 
+
+    global game_score
+
+    SET correct_answers TO []
+
+    SET user_answers TO []
+
+    SET game_score TO 0
+
+
+
+DEFINE FUNCTION sort_score_array(list_of_scores):
+
+    SET score_array TO list_of_scores
+
+     # We go through the list as many times as there are elements
+
+    FOR i IN range(len(score_array)):
+
+        # so the last pair of adjacent elements to be (n-2, n-1) where n TO length
+
+        FOR j IN range(len(score_array) - 1):
+
+            IF score_array[j] < score_array[j+1]:
+
+                # Swap
+
+                SET score_array[j], score_array[j+1] TO score_array[j+1], score_array[j]
+
+    RETURN score_array
+
+
+
+DEFINE FUNCTION play_3_games(): #tringgered IF the user plans to play three games
+
+        global practice_type
+
+        global game_score
+
+        global score_array
+
+        SET total_score TO 0
+
+        SET score_array TO []
+
+        
+
+        IF game_score == None: #these control flow statements total up each round and prevent errors due to ans = Null
+
+            SET game_score TO 0
+
+            total_score += game_score 
+
+            score_array.append(game_score)  
+
+        ELSE:
+
+            total_score += game_score 
+
+            score_array.append(game_score)
+
+        SET practice_type TO INPUT("what would you like to practice now? ") #ask for practice type
+
+        empty_answer_lists()
+
+        SET game_2 TO play() #Calls for a new ame to be played which depends on the value of practice type as to what type of game
+
+        IF game_2 == None:
+
+            SET game_2 TO 0
+
+            total_score += game_2 
+
+            score_array.append(game_2)  
+
+        ELSE:
+
+            total_score += game_2 
+
+            score_array.append(game_2)
+
+        SET practice_type TO INPUT("what would you like to practice now? ")
+
+        empty_answer_lists()
+
+        SET game_3 TO play()
+
+        IF game_3 == None:
+
+            SET game_3 TO 0
+
+            total_score += game_3 
+
+            score_array.append(game_3)  
+
+        ELSE:
+
+            total_score += game_3 
+
+            score_array.append(game_3)
+
+        SET score_array TO sort_score_array(score_array) #sorts scores from best to worse and outputs it from code below
+
+        OUTPUT("You best score was " + str(score_array[0]) + " then " + str(score_array[1]) + " and lastly " + str(score_array[2]) + " was your worst." )
+
+        leader_board(total_score) #adds total of the three attemps to leader board dict
+
+
+
+
+
+DEFINE FUNCTION user_score(correct_answer, user_answers): #called by division_func to total users score 
+
+    SET score TO 0
+
+    FOR i IN range (5):
+
+        IF correct_answer[i] == user_answers[i]:
+
+            OUTPUT("You got " + str(i+1) + " question right")
+
+            SET score TO score + 1
+
+        ELSE:
+
+            OUTPUT("You got " + str(i) + " question wrong")
+
+    global game_score
+
+    SET game_score TO score #keeps track of score so it can be totaled for leaderboard in play_3_games() func
+
+    OUTPUT("You got " + str(score) + " of the questions right!") #outputs the total score for the round
+
+    
+
+
+DEFINE FUNCTION division_func(start_number, end_number): #recursive fucntion which calls its self 5 times to provide 5 questions to the user
+
+    IF len(user_answers) >= 5: #recursive break case
+
+        user_score(correct_answers, user_answers)
+
+    ELSE:
+
+        SET temp1 TO random_number_generator(start_number,end_number) #random number generator functions
+
+        SET temp2 TO random_number_generator(start_number,end_number)
+
+        TRY:
+
+            user_answers.append(float(INPUT("what is the answer to " + str(temp1) + " / " + str(temp2) + " to 3 s.f. ? ")))
+
+            correct_answers.append(round(float((temp1/temp2)), 3))
+
+            division_func((start_number + random_number_generator(0,5)), (end_number + random_number_generator(0,5))) 
+            #recursive case above calls the function with randomly increasing limits for random function #ExtraRandom :)
+
+        EXCEPT: #error handling
+
+            OUTPUT("try again invalid input")
+
+            division_func(start_number, end_number) #recalls func after invalid input
+
+    
+
+    
+
+
+
+DEFINE FUNCTION multiplication_func(start_number, end_number): #same as division func in operation
+
+    IF len(user_answers) >= 5:
+
+        user_score(correct_answers, user_answers)
+
+    ELSE:
+
+        SET temp1 TO random_number_generator(start_number,end_number)
+
+        SET temp2 TO random_number_generator(start_number,end_number)
+
+        TRY:
+
+            user_answers.append(float(INPUT("what is the answer to " + str(temp1) + " * " + str(temp2) + " to 3 s.f. ? ")))
+
+            correct_answers.append(round(float((temp1*temp2)), 3))
+
+            multiplication_func((start_number + 5), (end_number + 5))
+
+        EXCEPT:
+
+            OUTPUT("try again invalid INPUT")
+
+            multiplication_func(start_number, end_number)
+
+
+DEFINE FUNCTION play(): #main menu function
+
+    global practice_type 
+
+    global game_score
+
+    IF practice_type == "Division" or practice_type == "division" or practice_type == "/":
+
+        OUTPUT("We will now practice division ;)")
+
+        empty_answer_lists() #Emptys answer lists so we can use same arrays to count each game
+
+        number_INPUT() #Asks user fot number inputs viva calling the fuction
+
+        division_func(user_start_number, user_end_number) #Inputs the gobal start and end number varibales taken filled on last line into te divison function
+
+        RETURN game_score #returns score  
+
+    #operates same as divison
+
+    ELSEIF practice_type == "Multiplication" or practice_type == "multiplication" or practice_type == "*": #operates same as divison 
+
+        OUTPUT("We will now do multiplication ;)")
+
+        empty_answer_lists()
+
+        number_INPUT()
+
+        multiplication_func(user_start_number, user_end_number)
+
+        RETURN game_score
+
+    ELSEIF practice_type == "scoreboard" or practice_type == "Scoreboard" or practice_type == "s" or practice_type == "S":
+
+        OUTPUT(leader_board_sort(leader_board_dict))
+
+    #error handleing
+
+    ELSE:
+
+        OUTPUT("Enter a valid game mode! ")
+
+        SET practice_type TO INPUT("what would you like to practice today? ")
+
+        play()
+
+
+
+DEFINE FUNCTION play_again():
+
+    global lets_play
+
+    global practice_type
+
+    SET user_play_again TO INPUT("Would you like to play again? y/n ")
+
+    IF user_play_again == "y" or user_play_again == "yes" or user_play_again == "Y" or user_play_again == "Yes":
+
+        SET lets_play TO True
+
+    ELSE:
+
+        SET practice_type TO INPUT("Type S to see current score board: ") # allows user to see score board
+
+        IF practice_type == "scoreboard" or practice_type == "Scoreboard" or practice_type == "s" or practice_type == "S":
+
+            play()
+
+            play_again()
+
+        ELSE: 
+
+            SET lets_play TO False #ends wile loop tat runs game
+
+            
+
+
+
+WHILE lets_play == True: #main loop for game
+
+    SET lets_play TO False #prevents infinte game loop
+
+    SET practice_type TO INPUT("what would you like to practice today? ") #user INPUTs game type to be used IN play()
+
+    
+
+    play() # calls play fuction to start game 
+
+    #gives optiton FOR user to play 3 games 
+
+    SET play_for_leaderboard TO INPUT("You have finished would you like to play 2 more times and enter the leader board? y/n ")
+
+    IF play_for_leaderboard == "y" or play_for_leaderboard == "yes" or play_for_leaderboard == "Y" or play_for_leaderboard == "Yes":
+
+        play_3_games()
+
+    #Asks user to play again
+
+    play_again()
+
+        
